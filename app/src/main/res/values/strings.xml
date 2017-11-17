@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Cosmetics</string>
+    <string name="nameButton">Наименование</string>
+    <string name="codeButton">Код товара</string>
+    <string name="ok">OK</string>
+    <string name="url">Введите URL</string>
+    <string name="baseUrl">https://schatbackend.herokuapp.com/group.xml</string>
+    <string name="verknuepfg">VERKNUEPFG</string>
+    <string name="FilialeText">FILIALE</string>
+
+</resources>
