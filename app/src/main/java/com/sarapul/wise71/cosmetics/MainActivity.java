@@ -4,19 +4,18 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 
-import com.bignerdranch.expandablerecyclerview.Model.ParentObject;
 import com.sarapul.wise71.cosmetics.models.E1WPW01;
 import com.sarapul.wise71.cosmetics.models.Group;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.OkHttpClient;
@@ -31,19 +30,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
 
     private String API_BASE_URL = "https://schatbackend.herokuapp.com/";
-    private RecyclerView recyclerView;
-    private ProductExpandableAdapter mProductExpandableAdapter;
     private Button mSortNameButton, mSortIdButton;
     private List<E1WPW01> products;
     private Response<Group> mResponse;
+
+    private ExpandableListView listView;
+    private ExpandableListAdapter listAdapter;
+    private List<String> listDataHeader;
+    private HashMap<String, List<String>> listHash;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManagerWrapper(this, LinearLayoutManager.VERTICAL, false));
+        listView = findViewById(R.id.listViewExpandable);
+
         mSortNameButton = findViewById(R.id.sortNameButton);
         mSortIdButton = findViewById(R.id.sortIdButton);
         mSortNameButton.setOnClickListener(this);
@@ -83,21 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private ArrayList<ParentObject> getParentItemList(Response<Group> response) {
-        products = response.body().getIDOC().getE1WPW01();
-        Collections.sort(products, nameComparator);
-        ArrayList<ParentObject> parentObjects = new ArrayList<>();
-        for (E1WPW01 product : products) {
-            ArrayList<Object> childList = new ArrayList<>();
-            childList.add(new ProductChild(
-                    product.getFILIALE(), product.getAENDKENNZ(),
-                    product.getAKTIVDATUM(), product.getAENDDATUM(),
-                    product.getE1WPW02().getHIERARCHIE(), product.getE1WPW02().getVERKNUEPFG()));
-            product.setChildObjectList(childList);
-            parentObjects.add(product);
-        }
-        return parentObjects;
-    }
     public static Comparator<E1WPW01> nameComparator = (o1, o2)
             -> o1.getE1WPW02().getBEZEICH().compareTo(o2.getE1WPW02().getBEZEICH());
 
@@ -119,16 +106,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     public void updateUI() {
 
-        if (mProductExpandableAdapter == null) {
-            mProductExpandableAdapter = new ProductExpandableAdapter(getApplicationContext(), getParentItemList(mResponse));
-            mProductExpandableAdapter.setCustomParentAnimationViewId(R.id.parentListItemExpandArrow);
-            mProductExpandableAdapter.setParentClickableViewAnimationDefaultDuration();
-            mProductExpandableAdapter.setParentAndIconExpandOnClick(true);
-            mProductExpandableAdapter.setProducts(products);
-            recyclerView.setAdapter(mProductExpandableAdapter);
+        if (listAdapter == null) {
+            products = mResponse.body().getIDOC().getE1WPW01();
+            Collections.sort(products, nameComparator);
+            listDataHeader = new ArrayList<>();
+            listHash = new HashMap<>();
+            getItemList();
+            listAdapter = new ExpandableListAdapter(this,listDataHeader,listHash, listView);
+            listView.setAdapter(listAdapter);
         } else {
-            mProductExpandableAdapter.setProducts(products);
-            mProductExpandableAdapter.notifyDataSetChanged();
+            int count =  listAdapter.getGroupCount();
+            for (int i = 0; i <count ; i++)
+                listView.collapseGroup(i);
+            listHash.clear();
+            listDataHeader.clear();
+            getItemList();
+            listAdapter.setProducts(listHash);
+            listAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void getItemList() {
+
+        ArrayList<Object> childList = new ArrayList<>();
+        for (E1WPW01 product : products) {
+            listDataHeader.add(product.getE1WPW02().getBEZEICH());
+            List<String> fields = new ArrayList<>();
+            fields.add(product.getWARENGR());
+            fields.add("FILIALE: " + product.getFILIALE());
+            fields.add("AENDKENNZ: " + product.getAENDKENNZ());
+            fields.add("AKTIVDATUM: " + product.getAKTIVDATUM());
+            fields.add("AENDDATUM: " + product.getAENDDATUM());
+            fields.add("HIERARCHIE: " + product.getE1WPW02().getHIERARCHIE());
+            fields.add("VERKNUEPFG: " + product.getE1WPW02().getVERKNUEPFG());
+            childList.add(fields);
+        }
+
+        for (int i = 0; i < listDataHeader.size(); i++) {
+            listHash.put(listDataHeader.get(i), (List<String>) childList.get(i));
         }
     }
 

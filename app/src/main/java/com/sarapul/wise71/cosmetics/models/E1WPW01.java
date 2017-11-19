@@ -1,17 +1,11 @@
 package com.sarapul.wise71.cosmetics.models;
 
-import com.bignerdranch.expandablerecyclerview.Model.ParentObject;
-
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
-import java.util.List;
-
 @Root(strict = false)
-public class E1WPW01 implements ParentObject
+public class E1WPW01
 {
-
-    private List<Object> mChildrenList;
 
     @Element(required = false)
     private String SEGMENT;
@@ -102,15 +96,5 @@ public class E1WPW01 implements ParentObject
     public String toString()
     {
         return "ClassPojo [E1WPW02 = "+E1WPW02+", FILIALE = "+FILIALE+", WARENGR = "+WARENGR+", SEGMENT = "+SEGMENT+", AENDDATUM = "+AENDDATUM+", AENDKENNZ = "+AENDKENNZ+", AKTIVDATUM = "+AKTIVDATUM+"]";
-    }
-
-    @Override
-    public List<Object> getChildObjectList() {
-        return mChildrenList;
-    }
-
-    @Override
-    public void setChildObjectList(List<Object> list) {
-        mChildrenList = list;
     }
 }
